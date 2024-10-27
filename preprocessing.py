@@ -7,6 +7,35 @@ pd.set_option('display.max_columns', None)
 dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
 
+# --- Selection Of The Subset Of Attributes ---
+selected_columns = [
+    'iyear', 'imonth', 'iday', 'extended', 'resolution', 'country_txt', 
+    'region_txt', 'city', 'success', 'suicide', 'attacktype1_txt', 
+    'targtype1_txt', 'natlty1_txt', 'gname', 'nperps', 'weaptype1_txt', 
+    'nkill', 'nwound', 'nkillus', 'nwoundus', 'dbsource'
+]
+
+filtered_df = df[selected_columns]
+
+column_renaming = {
+    'iyear': 'Year', 'imonth': 'Month', 'iday': 'Day', 'extended': 'Extended', 
+    'resolution': 'Resolution', 'country_txt': 'Country', 'region_txt': 'Region', 
+    'city': 'City', 'success': 'Success', 'suicide': 'Suicide', 
+    'attacktype1_txt': 'Attack Type', 'targtype1_txt': 'Target Type', 
+    'natlty1_txt': 'Attackers Nationality', 'gname': 'Group Name', 
+    'nperps': 'Number of Terrorists', 'weaptype1_txt': 'Weapon Type', 
+    'nkill': 'Number of Killed People', 'nwound': 'Number of Wounded People', 
+    'nkillus': 'Number of Killed US People', 'nwoundus': 'Number of Wounded US People', 
+    'dbsource': 'Database Source'
+}
+
+filtered_df = filtered_df.rename(columns=column_renaming)
+
+output_file_path = 'Filtered_GlobalTerrorismDataset.csv'
+filtered_df.to_csv(output_file_path, index=False)
+
+print(f'Data saved to {output_file_path} with selected columns and new names.')
+
 # --- Define Data Types ---
 attribute_classification = {
     'Nominal': [
