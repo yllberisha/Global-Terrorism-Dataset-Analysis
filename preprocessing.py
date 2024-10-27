@@ -8,7 +8,39 @@ dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
 
 # --- Define Data Types ---
-# TODO: Define Data Types
+attribute_classification = {
+    'Nominal': [
+        'eventid', 'country_txt', 'region_txt', 'provstate', 'city', 'specificity',
+        'location', 'summary', 'attacktype1_txt', 'attacktype2_txt', 'attacktype3_txt',
+        'targtype1_txt', 'targsubtype1_txt', 'targtype2_txt', 'targsubtype2_txt', 
+        'targtype3_txt', 'targsubtype3_txt', 'target1', 'target2', 'target3', 
+        'gname', 'gsubname', 'gname2', 'gsubname2', 'gname3', 'gsubname3', 
+        'motive', 'weaptype1_txt', 'weapsubtype1_txt', 'weaptype2_txt', 
+        'weapsubtype2_txt', 'weaptype3_txt', 'weapsubtype3_txt', 'weaptype4_txt', 
+        'weapsubtype4_txt', 'claimmode_txt', 'claimmode2_txt', 'claimmode3_txt', 
+        'compclaim', 'property', 'propextent_txt', 'propcomment', 'divert', 
+        'kidhijcountry', 'ransomnote', 'hostkidoutcome_txt', 'addnotes', 'scite1', 
+        'scite2', 'scite3', 'dbsource', 'related'
+    ],
+    'Ordinal': [
+        'doubtterr', 'multiple', 'success', 'suicide', 'ishostkid', 'ransom', 
+        'claimed', 'claim2', 'claim3'
+    ],
+    'Interval': [
+        'iyear', 'imonth', 'iday', 'resolution', 'latitude', 'longitude'
+    ],
+    'Ratio': [
+        'nkill', 'nkillus', 'nkillter', 'nwound', 'nwoundus', 'nwoundte', 
+        'propvalue', 'ransomamt', 'ransomamtus', 'ransompaid', 'ransompaidus', 
+        'hostkidoutcome'
+    ]
+}
+
+print("Type of Attributes Classification:")
+for attribute_type, columns in attribute_classification.items():
+    print(f"\n{attribute_type} Attributes:")
+    for col in columns:
+        print(f" - {col}")
 
 # --- DATA QUALITY ---
 # Completeness
@@ -20,7 +52,7 @@ completeness_analysis = pd.DataFrame({
     'Completeness Percentage': completeness_percentage
 })
 
-print('Completeness Analysis:\n', completeness_analysis)
+print('\nCompleteness Analysis:\n', completeness_analysis)
 
 columns_50p_missing = completeness_analysis[completeness_analysis['Completeness Percentage'] < 50].index
 if not columns_50p_missing.empty:
