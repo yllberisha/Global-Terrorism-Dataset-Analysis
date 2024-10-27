@@ -7,6 +7,7 @@ pd.set_option('display.max_columns', None)
 dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
 
+# --- Selection Of The Subset Of Attributes ---
 selected_columns = [
     'iyear', 'imonth', 'iday', 'extended', 'resolution', 'country_txt', 
     'region_txt', 'city', 'success', 'suicide', 'attacktype1_txt', 
