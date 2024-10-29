@@ -113,5 +113,14 @@ if not invalid_kill_counts.empty:
 required_columns = ['iyear', 'imonth', 'iday']
 missing_columns = [col for col in required_columns if col not in df.columns]
 if missing_columns:
-    raise ValueError(f'Missing columns: {missing_columns}')
+     print(f'Missing columns: {missing_columns}')
 
+# --- Discretization ---
+bins = [0, 10, 100, 500, 1000, 1570]
+labels = ['0-10', '11-100', '101-500', '501-1000', '1001-1570']
+df['victim_range'] = pd.cut(df['nkill'], bins=bins, labels=labels, right=True)
+
+df_cleaned = df.dropna(subset=['nkill', 'victim_range'])
+
+victim_distribution = df_cleaned['victim_range'].value_counts()
+print(f'\nBinning:\n{victim_distribution}')
