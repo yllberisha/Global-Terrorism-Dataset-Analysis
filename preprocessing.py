@@ -39,32 +39,19 @@ print(f'Data saved to {output_file_path} with selected columns and new names.')
 # --- Define Data Types ---
 attribute_classification = {
     'Nominal': [
-        'eventid', 'country_txt', 'region_txt', 'provstate', 'city', 'specificity',
-        'location', 'summary', 'attacktype1_txt', 'attacktype2_txt', 'attacktype3_txt',
-        'targtype1_txt', 'targsubtype1_txt', 'targtype2_txt', 'targsubtype2_txt', 
-        'targtype3_txt', 'targsubtype3_txt', 'target1', 'target2', 'target3', 
-        'gname', 'gsubname', 'gname2', 'gsubname2', 'gname3', 'gsubname3', 
-        'motive', 'weaptype1_txt', 'weapsubtype1_txt', 'weaptype2_txt', 
-        'weapsubtype2_txt', 'weaptype3_txt', 'weapsubtype3_txt', 'weaptype4_txt', 
-        'weapsubtype4_txt', 'claimmode_txt', 'claimmode2_txt', 'claimmode3_txt', 
-        'compclaim', 'property', 'propextent_txt', 'propcomment', 'divert', 
-        'kidhijcountry', 'ransomnote', 'hostkidoutcome_txt', 'addnotes', 'scite1', 
-        'scite2', 'scite3', 'dbsource', 'related'
+        'country_txt', 'region_txt', 'city', 'attacktype1_txt', 'targtype1_txt', 
+        'natlty1_txt', 'gname', 'weaptype1_txt', 'dbsource'
     ],
     'Ordinal': [
-        'doubtterr', 'multiple', 'success', 'suicide', 'ishostkid', 'ransom', 
-        'claimed', 'claim2', 'claim3'
+        'success', 'suicide'
     ],
     'Interval': [
-        'iyear', 'imonth', 'iday', 'resolution', 'latitude', 'longitude'
+        'iyear', 'imonth', 'iday', 'resolution'
     ],
     'Ratio': [
-        'nkill', 'nkillus', 'nkillter', 'nwound', 'nwoundus', 'nwoundte', 
-        'propvalue', 'ransomamt', 'ransomamtus', 'ransompaid', 'ransompaidus', 
-        'hostkidoutcome'
+        'nkill', 'nwound', 'nkillus', 'nwoundus', 'nperps'
     ]
 }
-
 print("Type of Attributes Classification:")
 for attribute_type, columns in attribute_classification.items():
     print(f"\n{attribute_type} Attributes:")
