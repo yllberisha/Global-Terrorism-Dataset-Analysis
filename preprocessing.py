@@ -78,7 +78,7 @@ column_renaming = {
 
 filtered_df = filtered_df.rename(columns=column_renaming)
 
-# --- Agregation columns ---
+# --- Aggregated columns ---
 def is_valid_date(year, month, day):
     """Check if the given year, month, day form a valid date."""
     try:
@@ -105,10 +105,15 @@ filtered_df = filtered_df.drop(columns=['Extended', 'Resolution'])
 
 def calculate_casualties(row):
     if pd.isnull(row['Number of Killed People']) or pd.isnull(row['Number of Wounded People']):
-        return pd.NA
+        return -99
     return row['Number of Killed People'] + row['Number of Wounded People']
 
 filtered_df['Number of Casualties'] = filtered_df.apply(calculate_casualties, axis=1)
+
+# Replace null values with -99
+filtered_df['Number of Terrorists'] = filtered_df['Number of Terrorists'].fillna(-99)
+filtered_df['Number of Killed People'] = filtered_df['Number of Killed People'].fillna(-99)
+filtered_df['Number of Wounded People'] = filtered_df['Number of Wounded People'].fillna(-99)
 
 # --- Sample Selection ---
 filtered_df['Decade'] = (filtered_df['Year'] // 10) * 10
