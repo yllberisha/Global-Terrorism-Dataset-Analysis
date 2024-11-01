@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from utils import extract_dataset
 
 pd.set_option('display.max_rows', None)
@@ -6,57 +8,6 @@ pd.set_option('display.max_columns', None)
 
 dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
-
-# --- Selection Of The Subset Of Attributes ---
-selected_columns = [
-    'iyear', 'imonth', 'iday', 'extended', 'resolution', 'country_txt', 
-    'region_txt', 'city', 'success', 'suicide', 'attacktype1_txt', 
-    'targtype1_txt', 'natlty1_txt', 'gname', 'nperps', 'weaptype1_txt', 
-    'nkill', 'nwound', 'nkillus', 'nwoundus', 'dbsource'
-]
-
-filtered_df = df[selected_columns]
-
-column_renaming = {
-    'iyear': 'Year', 'imonth': 'Month', 'iday': 'Day', 'extended': 'Extended', 
-    'resolution': 'Resolution', 'country_txt': 'Country', 'region_txt': 'Region', 
-    'city': 'City', 'success': 'Success', 'suicide': 'Suicide', 
-    'attacktype1_txt': 'Attack Type', 'targtype1_txt': 'Target Type', 
-    'natlty1_txt': 'Attackers Nationality', 'gname': 'Group Name', 
-    'nperps': 'Number of Terrorists', 'weaptype1_txt': 'Weapon Type', 
-    'nkill': 'Number of Killed People', 'nwound': 'Number of Wounded People', 
-    'nkillus': 'Number of Killed US People', 'nwoundus': 'Number of Wounded US People', 
-    'dbsource': 'Database Source'
-}
-
-filtered_df = filtered_df.rename(columns=column_renaming)
-
-output_file_path = 'Filtered_GlobalTerrorismDataset.csv'
-filtered_df.to_csv(output_file_path, index=False)
-
-print(f'Data saved to {output_file_path} with selected columns and new names.')
-
-# --- Define Data Types ---
-attribute_classification = {
-    'Nominal': [
-        'country_txt', 'region_txt', 'city', 'attacktype1_txt', 'targtype1_txt', 
-        'natlty1_txt', 'gname', 'weaptype1_txt', 'dbsource'
-    ],
-    'Ordinal': [
-        'success', 'suicide'
-    ],
-    'Interval': [
-        'iyear', 'imonth', 'iday', 'resolution'
-    ],
-    'Ratio': [
-        'nkill', 'nwound', 'nkillus', 'nwoundus', 'nperps'
-    ]
-}
-print("Type of Attributes Classification:")
-for attribute_type, columns in attribute_classification.items():
-    print(f"\n{attribute_type} Attributes:")
-    for col in columns:
-        print(f" - {col}")
 
 # --- DATA QUALITY ---
 # Completeness
@@ -102,6 +53,66 @@ missing_columns = [col for col in required_columns if col not in df.columns]
 if missing_columns:
      print(f'Missing columns: {missing_columns}')
 
+# --- Selection Of The Subset Of Attributes ---
+selected_columns = [
+    'iyear', 'imonth', 'iday', 'extended', 'resolution', 'country_txt', 
+    'region_txt', 'city', 'success', 'suicide', 'attacktype1_txt', 
+    'targtype1_txt', 'natlty1_txt', 'gname', 'nperps', 'weaptype1_txt', 
+    'nkill', 'nwound', 'nkillus', 'nwoundus', 'dbsource'
+]
+
+filtered_df = df[selected_columns]
+
+column_renaming = {
+    'iyear': 'Year', 'imonth': 'Month', 'iday': 'Day', 'extended': 'Extended', 
+    'resolution': 'Resolution', 'country_txt': 'Country', 'region_txt': 'Region', 
+    'city': 'City', 'success': 'Success', 'suicide': 'Suicide', 
+    'attacktype1_txt': 'Attack Type', 'targtype1_txt': 'Target Type', 
+    'natlty1_txt': 'Attackers Nationality', 'gname': 'Group Name', 
+    'nperps': 'Number of Terrorists', 'weaptype1_txt': 'Weapon Type', 
+    'nkill': 'Number of Killed People', 'nwound': 'Number of Wounded People', 
+    'nkillus': 'Number of Killed US People', 'nwoundus': 'Number of Wounded US People', 
+    'dbsource': 'Database Source'
+}
+
+filtered_df = filtered_df.rename(columns=column_renaming)
+
+# --- Sample Selection ---
+filtered_df['Decade'] = (filtered_df['Year'] // 10) * 10
+
+sampling_fraction = 0.1
+
+# Sample 10% of each group by Decade and Region
+sampled_df = filtered_df.groupby(['Decade', 'Region']).apply(lambda x: x.sample(frac=sampling_fraction, random_state=1)).reset_index(drop=True)
+
+output_file_path = 'Filtered_GlobalTerrorismDataset.csv'
+filtered_df.to_csv(output_file_path, index=False)
+
+print(f'Data saved to {output_file_path} with selected columns and new names.')
+
+# --- Define Data Types ---
+attribute_classification = {
+    'Nominal': [
+        'country_txt', 'region_txt', 'city', 'attacktype1_txt', 'targtype1_txt', 
+        'natlty1_txt', 'gname', 'weaptype1_txt', 'dbsource'
+    ],
+    'Ordinal': [
+        'success', 'suicide'
+    ],
+    'Interval': [
+        'iyear', 'imonth', 'iday', 'resolution'
+    ],
+    'Ratio': [
+        'nkill', 'nwound', 'nkillus', 'nwoundus', 'nperps'
+    ]
+}
+
+print("Type of Attributes Classification:")
+for attribute_type, columns in attribute_classification.items():
+    print(f"\n{attribute_type} Attributes:")
+    for col in columns:
+        print(f" - {col}")
+
 # --- Discretization ---
 bins = [0, 10, 100, 500, 1000, 1570]
 labels = ['0-10', '11-100', '101-500', '501-1000', '1001-1570']
@@ -111,3 +122,11 @@ df_cleaned = df.dropna(subset=['nkill', 'victim_range'])
 
 victim_distribution = df_cleaned['victim_range'].value_counts()
 print(f'\nBinning:\n{victim_distribution}')
+
+# --- Dimension Reduction ---
+features = df[['nkill', 'nkillus', 'nwound', 'nwoundus']].fillna(df[['nkill', 'nkillus', 'nwound', 'nwoundus']].mean())
+features_scaled = StandardScaler().fit_transform(features)
+pca = PCA(n_components=2) 
+reduced_features = pca.fit_transform(features_scaled)
+
+reduced_df = pd.DataFrame(data=reduced_features, columns=['PC1', 'PC2'])
