@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from utils import extract_dataset
+from datetime import datetime
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -76,6 +77,38 @@ column_renaming = {
 }
 
 filtered_df = filtered_df.rename(columns=column_renaming)
+
+# --- Agregation columns ---
+def is_valid_date(year, month, day):
+    """Check if the given year, month, day form a valid date."""
+    try:
+        datetime(year, month, day)
+        return True
+    except ValueError:
+        return False
+
+def calculate_duration(row):
+    if not is_valid_date(row['Year'], row['Month'], row['Day']):
+        return 0
+    
+    if row['Extended'] == 1 and pd.notnull(row['Resolution']):
+        attack_date = datetime(row['Year'], row['Month'], row['Day'])
+        try:
+            resolution_date = datetime.strptime(row['Resolution'], "%m/%d/%Y")
+            return (resolution_date - attack_date).days
+        except ValueError:
+            return 1
+    return 1
+
+filtered_df['Duration'] = filtered_df.apply(calculate_duration, axis=1)
+filtered_df = filtered_df.drop(columns=['Extended', 'Resolution'])
+
+def calculate_casualties(row):
+    if pd.isnull(row['Number of Killed People']) or pd.isnull(row['Number of Wounded People']):
+        return pd.NA
+    return row['Number of Killed People'] + row['Number of Wounded People']
+
+filtered_df['Number of Casualties'] = filtered_df.apply(calculate_casualties, axis=1)
 
 # --- Sample Selection ---
 filtered_df['Decade'] = (filtered_df['Year'] // 10) * 10
