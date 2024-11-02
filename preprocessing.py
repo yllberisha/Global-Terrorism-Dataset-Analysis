@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from utils import extract_dataset
@@ -123,10 +124,21 @@ df_cleaned = df.dropna(subset=['nkill', 'victim_range'])
 victim_distribution = df_cleaned['victim_range'].value_counts()
 print(f'\nBinning:\n{victim_distribution}')
 
-# --- Dimension Reduction ---
-features = df[['nkill', 'nkillus', 'nwound', 'nwoundus']].fillna(df[['nkill', 'nkillus', 'nwound', 'nwoundus']].mean())
-features_scaled = StandardScaler().fit_transform(features)
-pca = PCA(n_components=2) 
-reduced_features = pca.fit_transform(features_scaled)
+# Decade Distribution
+bins_decades = [1970, 1980, 1990, 2000, 2010, 2020]  
+labels_decades = ['1970s', '1980s', '1990s', '2000s', '2010s']  
+df['decade'] = pd.cut(df['iyear'], bins=bins_decades, labels=labels_decades, right=False)
 
+df_cleaned = df.dropna(subset=['nkill', 'decade'])
+
+decade_distribution = df_cleaned['decade'].value_counts()
+print(f'\nDecade Distribution:\n{decade_distribution}')
+
+# --- Dimension Reduction ---
+features = df[['attacktype1', 'weaptype1', 'suicide', 'success']].applymap(lambda x: np.nan if x < 0 else x)
+features.fillna(features.median(), inplace=True)
+features_scaled = StandardScaler().fit_transform(features)
+pca = PCA(n_components=2)
+
+reduced_features = pca.fit_transform(features_scaled)
 reduced_df = pd.DataFrame(data=reduced_features, columns=['PC1', 'PC2'])
