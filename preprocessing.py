@@ -135,10 +135,21 @@ decade_distribution = df_cleaned['decade'].value_counts()
 print(f'\nDecade Distribution:\n{decade_distribution}')
 
 # --- Dimension Reduction ---
-features = df[['attacktype1', 'weaptype1', 'suicide', 'success']].applymap(lambda x: np.nan if x < 0 else x)
-features.fillna(features.median(), inplace=True)
-features_scaled = StandardScaler().fit_transform(features)
-pca = PCA(n_components=2)
+df['attacktype1'] = df['attacktype1'].replace('', np.nan).fillna('Unknown')
+df['weaptype1'] = df['weaptype1'].replace('', np.nan).fillna('Unknown')
 
-reduced_features = pca.fit_transform(features_scaled)
+# One-hot encode only the 'attacktype1' and 'weaptype1' columns
+attack_weap_dummies = pd.get_dummies(df[['attacktype1', 'weaptype1']], drop_first=True)
+
+other_features = df[['nperps', 'nkill', 'suicide', 'success']]
+features = pd.concat([other_features, attack_weap_dummies], axis=1)
+features = features.applymap(lambda x: np.nan if x < 0 else x)
+features.fillna(features.median(), inplace=True)
+
+scaler = StandardScaler()
+features[['nperps', 'nkill']] = scaler.fit_transform(features[['nperps', 'nkill']])
+pca = PCA(n_components=2)
+reduced_features = pca.fit_transform(features)
 reduced_df = pd.DataFrame(data=reduced_features, columns=['PC1', 'PC2'])
+
+print(pca.explained_variance_ratio_)
