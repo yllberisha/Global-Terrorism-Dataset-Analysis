@@ -68,6 +68,23 @@ selected_columns = [
     'nkill', 'nwound', 'nkillus', 'nwoundus', 'dbsource'
 ]
 
+# --- Define Data Types ---
+attribute_classification = {
+    'Nominal': [
+        'country_txt', 'region_txt', 'city', 'attacktype1_txt', 'targtype1_txt', 
+        'natlty1_txt', 'gname', 'weaptype1_txt', 'dbsource'
+    ],
+    'Ordinal': [
+        'success', 'suicide'
+    ],
+    'Interval': [
+        'iyear', 'imonth', 'iday', 'resolution'
+    ],
+    'Ratio': [
+        'nkill', 'nwound', 'nkillus', 'nwoundus', 'nperps'
+    ]
+}
+
 filtered_df = df[selected_columns]
 
 column_renaming = {
@@ -145,23 +162,6 @@ merged_df.to_csv(output_file_path, index=False)
 
 print(f'Data saved to {output_file_path} with selected columns, new names, and GDP information.')
 
-# --- Define Data Types ---
-attribute_classification = {
-    'Nominal': [
-        'country_txt', 'region_txt', 'city', 'attacktype1_txt', 'targtype1_txt', 
-        'natlty1_txt', 'gname', 'weaptype1_txt', 'dbsource'
-    ],
-    'Ordinal': [
-        'success', 'suicide'
-    ],
-    'Interval': [
-        'iyear', 'imonth', 'iday', 'resolution'
-    ],
-    'Ratio': [
-        'nkill', 'nwound', 'nkillus', 'nwoundus', 'nperps'
-    ]
-}
-
 print("Type of Attributes Classification:")
 for attribute_type, columns in attribute_classification.items():
     print(f"\n{attribute_type} Attributes:")
@@ -207,3 +207,5 @@ reduced_features = pca.fit_transform(features)
 reduced_df = pd.DataFrame(data=reduced_features, columns=['PC1', 'PC2'])
 
 print(pca.explained_variance_ratio_)
+output_file_path = 'PCA_Analysis.csv'
+reduced_df.to_csv(output_file_path, index=False)
