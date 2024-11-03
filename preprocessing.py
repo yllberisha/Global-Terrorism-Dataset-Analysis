@@ -75,7 +75,7 @@ column_renaming = {
     'resolution': 'Resolution', 'country_txt': 'Country', 'region_txt': 'Region', 
     'city': 'City', 'success': 'Success', 'suicide': 'Suicide', 
     'attacktype1_txt': 'Attack Type', 'targtype1_txt': 'Target Type', 
-    'natlty1_txt': 'Attackers Nationality', 'gname': 'Group Name', 
+    'natlty1_txt': 'Target Nationality', 'gname': 'Attacking Group Name', 
     'nperps': 'Number of Terrorists', 'weaptype1_txt': 'Weapon Type', 
     'nkill': 'Number of Killed People', 'nwound': 'Number of Wounded People', 
     'nkillus': 'Number of Killed US People', 'nwoundus': 'Number of Wounded US People', 
@@ -120,6 +120,9 @@ filtered_df['Number of Casualties'] = filtered_df.apply(calculate_casualties, ax
 filtered_df['Number of Terrorists'] = filtered_df['Number of Terrorists'].fillna(-99)
 filtered_df['Number of Killed People'] = filtered_df['Number of Killed People'].fillna(-99)
 filtered_df['Number of Wounded People'] = filtered_df['Number of Wounded People'].fillna(-99)
+filtered_df['Number of Killed US People'] = filtered_df['Number of Killed US People'].fillna(-99)
+filtered_df['Number of Wounded US People'] = filtered_df['Number of Wounded US People'].fillna(-99)
+filtered_df['Target Nationality'] = filtered_df['Target Nationality'].fillna('Unknown')
 
 # --- Sample Selection ---
 filtered_df['Decade'] = (filtered_df['Year'] // 10) * 10
