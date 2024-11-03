@@ -14,9 +14,9 @@ The project is structured in three phases **Data Pre-Processing**, **Outlier Det
 - **Data Quality:** Completeness, Uniqueness, Accuracy Checks, Check for missing values
 - **Integration, Aggregation, and Display:** Agregating columns such as Duration and Number of Casualties
 - **Data Cleaning:** On different columns such as: Number of Terrorists, Number of Killed People, Number of Wounded People etc.
-- **Dimension Reduction:** 
-- **Subset Selection:**
-- **Discretization and Binarization:**
+- **Dimension Reduction:** Employed Principal Component Analysis (PCA) on selected features to reduce the dataset's dimensionality.
+- **Subset Selection:** Created a decade-based sample selection, sampling 10% of each group by decade and region.
+- **Discretization and Binarization:** Grouped casualty counts into severity ranges for trend analysis; converted key variables into binary values to simplify categorical comparisons.
 ___
 
 <table align="center"><tr><td align="center"><strong>Data Collection</strong></td></tr></table>
