@@ -1,5 +1,6 @@
 __pycache__/utils.cpython-312.pyc
 globalterrorismdb_0718dist.csv
-Filtered_GlobalTerrorismDataset.csv
+Preprocessed_Global_Terrorism_Dataset.csv
+Preprocessed_GDP_Dataset.csv
 __pycache__/
 *.pyc
