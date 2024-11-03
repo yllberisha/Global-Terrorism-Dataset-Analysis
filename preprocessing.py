@@ -4,9 +4,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from utils import extract_dataset
 from datetime import datetime
+import subprocess
+import os
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
+
+if not os.path.exists('Preprocessed_GDP_Dataset.csv'):
+    subprocess.run(["python3", "preprocess_gdp_dataset.py"])
 
 dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
@@ -124,10 +129,18 @@ sampling_fraction = 0.1
 # Sample 10% of each group by Decade and Region
 sampled_df = filtered_df.groupby(['Decade', 'Region']).apply(lambda x: x.sample(frac=sampling_fraction, random_state=1)).reset_index(drop=True)
 
-output_file_path = 'Filtered_GlobalTerrorismDataset.csv'
-filtered_df.to_csv(output_file_path, index=False)
+# --- Integration ---
+#  Merge GDP Data
+gdp_df = pd.read_csv('Preprocessed_GDP_Dataset.csv')
 
-print(f'Data saved to {output_file_path} with selected columns and new names.')
+merged_df = pd.merge(filtered_df, gdp_df, how='left', left_on=['Year', 'Country'], right_on=['Year', 'Country'])
+
+merged_df = merged_df.drop(columns=['Country'])
+
+output_file_path = 'Preprocessed_Global_Terrorism_Dataset.csv'
+merged_df.to_csv(output_file_path, index=False)
+
+print(f'Data saved to {output_file_path} with selected columns, new names, and GDP information.')
 
 # --- Define Data Types ---
 attribute_classification = {
