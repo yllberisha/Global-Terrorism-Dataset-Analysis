@@ -16,6 +16,18 @@ if not os.path.exists('Preprocessed_GDP_Dataset.csv'):
 dataset_file_path = extract_dataset('GlobalTerrorismDataset.zip')
 df = pd.read_csv(dataset_file_path, encoding='ISO-8859-1')
 
+# --- DATA COLLECTION ---
+db_source_counts = df['dbsource'].value_counts(normalize=True) * 100
+
+top_4_db_sources = db_source_counts.head(4).to_frame(name='Contribution Percentage')
+others_percentage = pd.DataFrame({'Contribution Percentage': [db_source_counts.iloc[4:].sum()]}, index=['Others'])
+
+db_sources_summary = pd.concat([top_4_db_sources, others_percentage])
+db_sources_summary.index.name = 'Database Source'
+
+print("Database Sources:\n")
+print(db_sources_summary.to_string(float_format="{:,.6f}".format))
+
 # --- DATA QUALITY ---
 # Completeness
 missing_values = df.isnull().sum()
@@ -47,7 +59,7 @@ duplicate_count = df.duplicated().sum()
 if duplicate_count > 0:
     print(f'\nThere are {duplicate_count} duplicate rows in the dataset.')
 else:
-    print('No duplicate rows found in the dataset.')
+    print('\nNo duplicate rows found in the dataset.\n')
 
 # Accuracy Checks
 invalid_kill_counts = df[df['nkill'] < 0]
@@ -67,6 +79,8 @@ selected_columns = [
     'targtype1_txt', 'natlty1_txt', 'gname', 'nperps', 'weaptype1_txt', 
     'nkill', 'nwound', 'nkillus', 'nwoundus', 'dbsource'
 ]
+
+print(f'\n\nSelected Columns:\n{selected_columns}\n')
 
 # --- Define Data Types ---
 attribute_classification = {

@@ -2,6 +2,7 @@ __pycache__/utils.cpython-312.pyc
 globalterrorismdb_0718dist.csv
 Preprocessed_Global_Terrorism_Dataset.csv
 Preprocessed_GDP_Dataset.csv
+PCA_Analysis.csv
 __pycache__/
 *.pyc
 .ipynb_checkpoints/preprocessing-checkpoint.ipynb
