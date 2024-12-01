@@ -223,3 +223,18 @@ reduced_df = pd.DataFrame(data=reduced_features, columns=['PC1', 'PC2'])
 print(pca.explained_variance_ratio_)
 output_file_path = 'PCA_Analysis.csv'
 reduced_df.to_csv(output_file_path, index=False)
+
+# --- Detecting Outliers ---
+def detect_outliers(data, column, threshold=3):
+    """
+    Detects outliers in a column using the Z-score method.
+    """
+    mean = data[column].mean()
+    std = data[column].std()
+    data['z_score'] = (data[column] - mean) / std
+    outliers = data[np.abs(data['z_score']) > threshold]
+    return outliers.drop(columns=['z_score'], errors='ignore')
+
+nkill_outliers = detect_outliers(filtered_df, 'Number of Killed People')
+
+print(f'\nOutliers in "Number of Killed People":\n{nkill_outliers[["Year", "Country", "Number of Killed People"]]}')
