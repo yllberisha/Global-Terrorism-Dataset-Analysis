@@ -238,3 +238,51 @@ def detect_outliers(data, column, threshold=3):
 nkill_outliers = detect_outliers(filtered_df, 'Number of Killed People')
 
 print(f'\nOutliers in "Number of Killed People":\n{nkill_outliers[["Year", "Country", "Number of Killed People"]]}')
+
+from scipy.stats import t
+import numpy as np
+
+# --- Grubbs' Test Function ---
+def grubbs_test(data, column, significance_level=0.05):
+    """
+    Apply Grubbs' test to detect and remove outliers from a column.
+    """
+    cleaned_data = data[data[column] != -99].copy()
+    max_iterations = 100
+
+    while max_iterations > 0:
+        max_iterations -= 1
+        mean = cleaned_data[column].mean()
+        std_dev = cleaned_data[column].std()
+        n = len(cleaned_data)
+        if n <= 2:
+            break
+
+        G = abs(cleaned_data[column] - mean).max() / std_dev
+
+        t_critical = t.ppf(1 - significance_level / (2 * n), n - 2)
+        critical_value = ((n - 1) / np.sqrt(n)) * np.sqrt(t_critical ** 2 / (n - 2 + t_critical ** 2))
+
+        if G > critical_value:
+            outlier_value = cleaned_data[column].max()
+            cleaned_data = cleaned_data[cleaned_data[column] != outlier_value]
+        else:
+            break
+
+    return cleaned_data
+
+# --- Apply Grubbs' Test to "Number of Terrorists" ---
+number_of_terrorists_cleaned = grubbs_test(filtered_df, 'Number of Terrorists')
+
+filtered_df = filtered_df.merge(
+    number_of_terrorists_cleaned[['Number of Terrorists']],
+    left_index=True, right_index=True, how='left', suffixes=('', '_grubbs')
+)
+
+filtered_df['Number of Terrorists'] = filtered_df['Number of Terrorists_grubbs'].fillna(-99)
+filtered_df = filtered_df.drop(columns=['Number of Terrorists_grubbs'])
+
+number_of_terrorists_stats = filtered_df['Number of Terrorists'].describe()
+
+print("\nCleaned 'Number of Terrorists' Column Statistics:\n", number_of_terrorists_stats)
+
