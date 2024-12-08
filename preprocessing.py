@@ -1,11 +1,15 @@
 import pandas as pd
 import numpy as np
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from utils import extract_dataset
 from datetime import datetime
 import subprocess
 import os
+from scipy.stats import t
+import numpy as np
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -224,23 +228,30 @@ print(pca.explained_variance_ratio_)
 output_file_path = 'PCA_Analysis.csv'
 reduced_df.to_csv(output_file_path, index=False)
 
-# --- Detecting Outliers ---
-def detect_outliers(data, column, threshold=3):
-    """
-    Detects outliers in a column using the Z-score method.
-    """
-    mean = data[column].mean()
-    std = data[column].std()
-    data['z_score'] = (data[column] - mean) / std
-    outliers = data[np.abs(data['z_score']) > threshold]
-    return outliers.drop(columns=['z_score'], errors='ignore')
-
-nkill_outliers = detect_outliers(filtered_df, 'Number of Killed People')
-
-print(f'\nOutliers in "Number of Killed People":\n{nkill_outliers[["Year", "Country", "Number of Killed People"]]}')
-
-from scipy.stats import t
-import numpy as np
+# --- Detecting Anomalies ---
+# ---- Statistical-Based Anomalies ----
+def statistical_anomaly_detection_z_score(data, column, threshold=3):
+    valid_data = data[data[column] != -99].copy()
+    
+    mean = valid_data[column].mean()
+    std = valid_data[column].std()
+    
+    valid_data['Z Score'] = (valid_data[column] - mean) / std
+    anomalies = valid_data[np.abs(valid_data['Z Score']) > threshold]
+    
+    anomaly_percentage = (len(anomalies) / len(valid_data)) * 100 if len(valid_data) > 0 else 0
+    print(f"\nStatistical-Based Anomalies using Z-Score for {column}: {anomaly_percentage:.2f}%")
+    
+    if not anomalies.empty:
+        top_5_anomalies = anomalies.assign(abs_score=anomalies['Z Score'].abs()).sort_values('abs_score', ascending=False).head(5)
+        print("\nTop 5 anomalies by highest absolute z-score:")
+        print(top_5_anomalies[['Year', 'Country', column, 'Z Score']])
+    else:
+        print("No anomalies found.")
+    
+    return anomalies
+stat_anomalies_killed = statistical_anomaly_detection_z_score(filtered_df, 'Number of Killed People')
+stat_anomalies_wounded = statistical_anomaly_detection_z_score(filtered_df, 'Duration')
 
 # --- Grubbs' Test Function ---
 def grubbs_test(data, column, significance_level=0.05):
@@ -285,4 +296,66 @@ filtered_df = filtered_df.drop(columns=['Number of Terrorists_grubbs'])
 number_of_terrorists_stats = filtered_df['Number of Terrorists'].describe()
 
 print("\nCleaned 'Number of Terrorists' Column Statistics:\n", number_of_terrorists_stats)
+
+# --- Density Based Anomaly Detection ---
+def density_based_anomaly_detection(data, columns, n_neighbors=20):
+    valid_data = data[(data[columns] != -99).all(axis=1)][columns].dropna().copy()
+    
+    lof = LocalOutlierFactor(n_neighbors=n_neighbors, metric='euclidean')
+    valid_data['density_score'] = lof.fit_predict(valid_data)
+    valid_data['Anomaly Score'] = -lof.negative_outlier_factor_
+
+    anomalies = valid_data[valid_data['density_score'] == -1].copy()
+
+    anomalies['Duration'] = data.loc[anomalies.index, 'Duration']
+    anomalies['Year'] = data.loc[anomalies.index, 'Year']
+    anomalies['Country'] = data.loc[anomalies.index, 'Country']
+
+    top_5_anomalies = anomalies.sort_values(by='Anomaly Score', ascending=False).head(5)
+    anomaly_percentage = (len(anomalies) / len(valid_data)) * 100
+    print(f"\nDensity-Based Anomalies for {columns} {anomaly_percentage:.2f}%")
+
+    print("\nTop 5 Anomalies:")
+    print(top_5_anomalies[['Year', 'Country', 'Number of Killed People','Duration', 'Anomaly Score']])
+
+    return anomalies
+
+density_combo = ['Number of Killed People', 'Duration']
+density_anomalies = density_based_anomaly_detection(filtered_df, density_combo)
+
+def clustering_based_anomaly_detection(data, columns, eps=0.8, min_samples=10):
+    for col in ['Year', 'Country', 'Weapon Type', 'Attack Type']:
+        if col not in data.columns:
+            data[col] = '-'
+    
+    available_columns = [col for col in columns if col in data.columns]
+    if not available_columns:
+        print("No valid columns available for clustering.")
+        return None
+
+    
+    valid_data = pd.get_dummies(data[available_columns].dropna())
+    
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    valid_data['cluster'] = dbscan.fit_predict(valid_data)
+    
+    anomalies = valid_data[valid_data['cluster'] == -1].copy()
+    
+    for col in ['Year', 'Country', 'Weapon Type', 'Attack Type']:
+        anomalies[col] = data.loc[anomalies.index, col]
+    
+    anomalies['Anomaly Score'] = 1 
+    top_5_anomalies = anomalies.sort_values(by='Anomaly Score', ascending=False).head(5)
+    
+    anomaly_percentage = (len(anomalies) / len(valid_data)) * 100
+    print(f"\nClustering-Based Anomalies for {available_columns}: {anomaly_percentage:.2f}%")
+
+    print("\nTop 5 Anomalies:")
+    columns_to_print = ['Year', 'Country', 'Weapon Type', 'Attack Type', 'Anomaly Score']
+    print(top_5_anomalies[columns_to_print])
+    
+    return anomalies
+
+clustering_combo = ['Weapon Type', 'Attack Type']
+cluster_anomalies = clustering_based_anomaly_detection(filtered_df, clustering_combo)
 
