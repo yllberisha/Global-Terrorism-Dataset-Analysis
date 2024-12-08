@@ -130,7 +130,7 @@ def is_valid_date(year, month, day):
 
 def calculate_duration(row):
     if not is_valid_date(row['Year'], row['Month'], row['Day']):
-        return 0
+        return -99
     
     if row['Extended'] == 1 and pd.notnull(row['Resolution']):
         attack_date = datetime(row['Year'], row['Month'], row['Day'])
@@ -323,6 +323,7 @@ def density_based_anomaly_detection(data, columns, n_neighbors=20):
 density_combo = ['Number of Killed People', 'Duration']
 density_anomalies = density_based_anomaly_detection(filtered_df, density_combo)
 
+# --- Clustering Based Anomaly Detection ---
 def clustering_based_anomaly_detection(data, columns, eps=0.8, min_samples=10):
     for col in ['Year', 'Country', 'Weapon Type', 'Attack Type']:
         if col not in data.columns:
@@ -359,3 +360,47 @@ def clustering_based_anomaly_detection(data, columns, eps=0.8, min_samples=10):
 clustering_combo = ['Weapon Type', 'Attack Type']
 cluster_anomalies = clustering_based_anomaly_detection(filtered_df, clustering_combo)
 
+required_columns = ['Anomaly Score', 'Z Score', 'Detection Method', 'Year', 'Country', 'Number of Killed People', 'Duration', 'Weapon Type', 'Attack Type']
+default_value = '-'
+
+for anomalies_df, detection_method in [
+    (stat_anomalies_killed, 'Statistical Z-Score (Killed)'),
+    (stat_anomalies_wounded, 'Statistical Z-Score (Wounded)'),
+    (density_anomalies, 'Density-Based'),
+    (cluster_anomalies, 'Clustering-Based')
+]:
+    for col in required_columns:
+        if col not in anomalies_df.columns:
+            anomalies_df[col] = default_value 
+    anomalies_df['Detection Method'] = detection_method
+
+all_anomalies_combined = pd.concat(
+    [
+        stat_anomalies_killed[required_columns],
+        stat_anomalies_wounded[required_columns],
+        density_anomalies[required_columns],
+        cluster_anomalies[required_columns]
+    ],
+    axis=0
+).reset_index(drop=True)
+
+output_csv_path = 'Detected_Anomalies.csv'
+all_anomalies_combined.to_csv(output_csv_path, index=False)
+print(f"Anomalies saved to {output_csv_path}")
+
+# --- Clean out data ---
+filtered_df_cleaned = filtered_df[
+    ((filtered_df['Duration'] >= 1) | (filtered_df['Duration'] == -99)) & (filtered_df['Duration'] != 7324)
+]
+filtered_df_cleaned = filtered_df_cleaned[~(
+    ((filtered_df_cleaned['Weapon Type'] == 'Chemical') & (filtered_df_cleaned['Attack Type'] == 'Armed Assault')) |
+    ((filtered_df_cleaned['Weapon Type'] == 'Explosives') & (filtered_df_cleaned['Attack Type'] == 'Unarmed Assault')) |
+    ((filtered_df_cleaned['Weapon Type'] == 'Melee') & (filtered_df_cleaned['Attack Type'] == 'Bombing/Explosion')) |
+    ((filtered_df_cleaned['Weapon Type'] == 'Fake Weapons') & (filtered_df_cleaned['Attack Type'] == 'Bombing/Explosion')) |
+    ((filtered_df_cleaned['Weapon Type'] == 'Fake Weapons') & (filtered_df_cleaned['Attack Type'] == 'Facility/Infrastructure'))
+)]
+
+cleaned_output_path = 'Filtered_Global_Terrorism_Dataset.csv'
+filtered_df_cleaned.to_csv(cleaned_output_path, index=False)
+
+print(f"Filtered dataset saved to {cleaned_output_path}")
