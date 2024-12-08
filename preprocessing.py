@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 from utils import extract_dataset
 from datetime import datetime
@@ -237,9 +238,37 @@ print(f"\n\n--------------------------------------------------------------------
 print(f"Detecting Anomalies \n\n")
 
 print(f"Detecting and handling Contextual Anomalies")
-print(f"\n{removed_count} rows removed where 'KLA' is considered as terrorist organisation.")
+print(f"\n{removed_count} rows removed where 'KLA' is considered as terrorist organisation.\n\n")
 
-# ---- Statistical-Based Anomalies ----
+# ---- Proximity-Based outlier detection ----
+file_path = "Preprocessed_Global_Terrorism_Dataset.csv" 
+df = pd.read_csv(file_path)
+
+print("\nProximity-based outlier detection for 'Number of Killed US People', 'Number of Wounded US People'")
+feature_columns = ['Number of Killed US People', 'Number of Wounded US People']
+
+df_filtered = df[feature_columns].replace(-99, None).dropna()
+
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df_filtered)
+
+def knn_anomaly_detection(k, scaled_data, original_data):
+    nbrs = NearestNeighbors(n_neighbors=k + 1)
+    nbrs.fit(scaled_data)
+    
+    distances, indices = nbrs.kneighbors(scaled_data)
+    kth_distances = distances[:, -1]
+    
+    original_data['kth_distance'] = kth_distances
+    
+    top_anomalies = original_data.sort_values('kth_distance', ascending=False).head(5)
+    
+    print(f"\nTop 5 anomalies with k = {k}:")
+    print(top_anomalies[['kth_distance'] + feature_columns])
+
+for k in [1, 20]:
+    knn_anomaly_detection(k, scaled_features, df_filtered.copy())
+
 def statistical_anomaly_detection_z_score(data, column, threshold=3):
     valid_data = data[data[column] != -99].copy()
     
