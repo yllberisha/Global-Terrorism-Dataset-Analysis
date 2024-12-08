@@ -253,49 +253,39 @@ def statistical_anomaly_detection_z_score(data, column, threshold=3):
 stat_anomalies_killed = statistical_anomaly_detection_z_score(filtered_df, 'Number of Killed People')
 stat_anomalies_wounded = statistical_anomaly_detection_z_score(filtered_df, 'Duration')
 
-# --- Grubbs' Test Function ---
-def grubbs_test(data, column, significance_level=0.05):
-    """
-    Apply Grubbs' test to detect and remove outliers from a column.
-    """
+def detect_highest_anomaly_grubbs(data, column, significance_level=0.05):
     cleaned_data = data[data[column] != -99].copy()
-    max_iterations = 100
+    print("\nStatistical-Based Anomalies using Grubb's Test for Number of Wounded People")
 
-    while max_iterations > 0:
-        max_iterations -= 1
-        mean = cleaned_data[column].mean()
-        std_dev = cleaned_data[column].std()
-        n = len(cleaned_data)
-        if n <= 2:
-            break
+    mean = cleaned_data[column].mean()
+    std_dev = cleaned_data[column].std()
+    n = len(cleaned_data)
 
-        G = abs(cleaned_data[column] - mean).max() / std_dev
+    G = abs(cleaned_data[column].max() - mean) / std_dev
+    t_critical = t.ppf(1 - significance_level / (2 * n), n - 2)
+    critical_value = ((n - 1) / np.sqrt(n)) * np.sqrt(t_critical**2 / (n - 2 + t_critical**2))
 
-        t_critical = t.ppf(1 - significance_level / (2 * n), n - 2)
-        critical_value = ((n - 1) / np.sqrt(n)) * np.sqrt(t_critical ** 2 / (n - 2 + t_critical ** 2))
+    print(f"n = {n}, α = {significance_level}, Gmax = {G:.4f}, G critical = {critical_value:.4f}")
 
-        if G > critical_value:
-            outlier_value = cleaned_data[column].max()
-            cleaned_data = cleaned_data[cleaned_data[column] != outlier_value]
-        else:
-            break
+    if G > critical_value:
+        anomaly_value = cleaned_data[column].max()
+        anomaly_row = data[data[column] == anomaly_value].iloc[0]
+        print("\nHighest Anomaly Detected:")
+        print(f"Detected anomaly: {anomaly_value}")
+        return anomaly_row
+    else:
+        print("No anomaly detected.")
+        return None
 
-    return cleaned_data
 
-# --- Apply Grubbs' Test to "Number of Terrorists" ---
-number_of_terrorists_cleaned = grubbs_test(filtered_df, 'Number of Terrorists')
+highest_anomaly = detect_highest_anomaly_grubbs(filtered_df, 'Number of Wounded People')
 
-filtered_df = filtered_df.merge(
-    number_of_terrorists_cleaned[['Number of Terrorists']],
-    left_index=True, right_index=True, how='left', suffixes=('', '_grubbs')
-)
-
-filtered_df['Number of Terrorists'] = filtered_df['Number of Terrorists_grubbs'].fillna(-99)
-filtered_df = filtered_df.drop(columns=['Number of Terrorists_grubbs'])
-
-number_of_terrorists_stats = filtered_df['Number of Terrorists'].describe()
-
-print("\nCleaned 'Number of Terrorists' Column Statistics:\n", number_of_terrorists_stats)
+if highest_anomaly is not None:
+    print("\nSummary of the highest detected anomaly:")
+    print(f"Year: {highest_anomaly['Year']}, Region: {highest_anomaly['Region']}, "
+          f"Number of Wounded People: {highest_anomaly['Number of Wounded People']}")
+else:
+    print("\nNo anomalies detected.")
 
 # --- Density Based Anomaly Detection ---
 def density_based_anomaly_detection(data, columns, n_neighbors=20):
