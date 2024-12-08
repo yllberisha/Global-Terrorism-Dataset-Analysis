@@ -6,16 +6,15 @@
      <img src="https://github.com/user-attachments/assets/97d82b15-7058-4498-bdd4-efbae2425810" alt="University Logo" width="200" >
     </td>
     <td>
-      <h2>UNIVERSITETI I PRISHTINËS “HASAN PRISHTINA”</h2>
-      <p><strong>Fakulteti i Inxhinierisë Elektrike dhe Kompjuterike</p>
-      <p><strong>Departamenti: </strong> Inxhinieri Kompjuterike dhe Softuerike</p>
-      <p><strong>Kodra e Diellit, p.n. - 10000 Prishtinë, Kosova</string>
+      <h2>UNIVERSITY OF PRISHTINA “HASAN PRISHTINA”</h2>
+      <p><strong>Faculty of Electrical and Computer Engineering</p>
+      <p><strong>Department: Computer and Software Engineering</strong></p>
+      <p><strong>Study Level: Master's Program</strong></p>
+      <p><strong>Sunny Hill, p.n. - 10000 Prishtina, Kosovo</string>
     </td>
-   
   </tr>
 </table>
 
-**Level of Studies:** *Master*   <br>
 **Students:** *[Jetë Lajçi](https://github.com/Jeta52), [Melisa Alaj](https://github.com/melisaalaj), [Yll Berisha](https://github.com/yllberisha)*   <br>
 **Professor:** *[Dr. Sc. Mërgim H. HOTI](https://github.com/MergimHHoti)*   <br>
 **------------------------------------------------------------------------------------------------------------------------------------------------------------**
