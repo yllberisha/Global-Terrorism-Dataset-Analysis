@@ -229,6 +229,16 @@ output_file_path = 'PCA_Analysis.csv'
 reduced_df.to_csv(output_file_path, index=False)
 
 # --- Detecting Anomalies ---
+# ---- Contextual Anomalies ----
+kla_rows = filtered_df[filtered_df['Attacking Group Name'].str.contains("KLA", na=False)]
+removed_count = kla_rows.shape[0]
+filtered_df = filtered_df[~filtered_df['Attacking Group Name'].str.contains("KLA", na=False)]
+print(f"\n\n-------------------------------------------------------------------------------\n")
+print(f"Detecting Anomalies \n\n")
+
+print(f"Detecting and handling Contextual Anomalies")
+print(f"\n{removed_count} rows removed where 'KLA' is considered as terrorist organisation.")
+
 # ---- Statistical-Based Anomalies ----
 def statistical_anomaly_detection_z_score(data, column, threshold=3):
     valid_data = data[data[column] != -99].copy()
